@@ -1,6 +1,6 @@
 spring:
   datasource:
-    # Base en memoria aislada para cada ejecución de tests
+    # Base en memoria compartida por los tests de una ejecución; cada test revierte su transacción
     url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
   h2:
     console:
