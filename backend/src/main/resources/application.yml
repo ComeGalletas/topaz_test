@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: support-orders
+  datasource:
+    # H2 en modo archivo: los datos sobreviven a reinicios sin instalar nada.
+    url: jdbc:h2:file:./data/support-orders;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+  jpa:
+    # El esquema lo gestiona Flyway; Hibernate solo valida que coincida.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+logging:
+  level:
+    com.example.supportorders: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/support_orders}
+    username: ${DB_USER:support}
+    password: ${DB_PASSWORD:support}
+  h2:
+    console:
+      enabled: false
