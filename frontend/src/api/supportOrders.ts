@@ -8,6 +8,9 @@ import type {
 // En desarrollo Vite redirige /api al backend; VITE_API_URL permite apuntar a otro host.
 const BASE_URL = `${import.meta.env.VITE_API_URL ?? ''}/api/support-orders`
 
+const CONNECTION_ERROR = 'No se pudo conectar con el servidor. Verifica que el backend esté en ejecución.'
+const GATEWAY_ERRORS = [502, 503, 504]
+
 /** Error de la API con el cuerpo RFC 7807 ya interpretado. */
 export class ApiError extends Error {
   readonly status: number
@@ -37,7 +40,12 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   try {
     response = await fetch(BASE_URL + path, { ...init, headers })
   } catch {
-    throw new ApiError('No se pudo conectar con el servidor. Verifica que el backend esté en ejecución.', 0)
+    throw new ApiError(CONNECTION_ERROR, 0)
+  }
+
+  // Detrás de un proxy (Vite en desarrollo) un backend caído llega como 502/503/504, no como error de red.
+  if (GATEWAY_ERRORS.includes(response.status)) {
+    throw new ApiError(CONNECTION_ERROR, response.status)
   }
 
   if (!response.ok) {

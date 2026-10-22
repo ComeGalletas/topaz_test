@@ -30,7 +30,7 @@ las consulte y actualice su estado.
 
 ```bash
 cd backend
-./mvnw spring-boot:run      # Windows: mvnw.cmd spring-boot:run
+./mvnw spring-boot:run      # Windows: .\mvnw.cmd spring-boot:run
 ```
 
 La API queda en `http://localhost:8080/api/support-orders`.
@@ -53,7 +53,7 @@ Build de producción: `npm run build` (incluye la verificación de tipos con `ts
 
 ```bash
 cd backend
-./mvnw test                 # Windows: mvnw.cmd test
+./mvnw test                 # Windows: .\mvnw.cmd test
 ```
 
 31 pruebas: unitarias (política de transiciones, servicio con Mockito) y de integración (repositorio
@@ -87,6 +87,7 @@ Consola H2: `http://localhost:8080/h2-console`, JDBC URL `jdbc:h2:file:./data/su
 docker compose up -d
 cd backend
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
+# Windows (PowerShell): .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=postgres"
 ```
 
 Credenciales por defecto `support/support`, base `support_orders` en `localhost:5432`; se pueden cambiar
