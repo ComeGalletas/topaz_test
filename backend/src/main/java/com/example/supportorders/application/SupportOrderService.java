@@ -5,6 +5,8 @@ import com.example.supportorders.domain.StatusTransitionPolicy;
 import com.example.supportorders.domain.SupportOrder;
 import com.example.supportorders.persistence.SupportOrderRepository;
 import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -48,7 +50,7 @@ public class SupportOrderService {
         }
 
         SupportOrder order = SupportOrder.open(externalReference, request.customerId(), request.category(),
-                request.description(), request.channel(), request.priority(), clock.instant());
+                request.description(), request.channel(), request.priority(), now());
 
         SupportOrder saved;
         try {
@@ -84,7 +86,7 @@ public class SupportOrderService {
         SupportOrder order = get(id);
         OrderStatus previous = order.getStatus();
 
-        order.transitionTo(target, transitionPolicy, clock.instant());
+        order.transitionTo(target, transitionPolicy, now());
         SupportOrder saved = repository.saveAndFlush(order);
 
         log.info("Support order status changed id={} from={} to={}", id, previous, target);
@@ -94,6 +96,11 @@ public class SupportOrderService {
     /** Estados a los que puede pasar la orden; útil para que el cliente solo ofrezca acciones válidas. */
     public List<OrderStatus> allowedTransitions(SupportOrder order) {
         return transitionPolicy.allowedTransitions(order.getStatus()).stream().sorted().toList();
+    }
+
+    /** Precisión de microsegundos, la que guarda la base: la respuesta coincide con lo persistido. */
+    private Instant now() {
+        return clock.instant().truncatedTo(ChronoUnit.MICROS);
     }
 
     private static boolean isActiveReferenceViolation(DataIntegrityViolationException ex) {
