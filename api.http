@@ -1,0 +1,92 @@
+### Ejemplos de consumo de la API de órdenes de soporte
+### Ejecutables con el cliente HTTP de IntelliJ o la extensión "REST Client" de VS Code.
+### Requiere el backend en ejecución (cd backend && ./mvnw spring-boot:run).
+### Las peticiones asumen una base vacía (la orden creada en 1 tendrá id 1). La H2 por defecto persiste
+### en backend/data: para repetir el recorrido desde cero, detener el backend y borrar esa carpeta.
+
+@baseUrl = http://localhost:8080/api/support-orders
+
+### 1. Crear una orden (201 + cabecera Location)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "externalReference": "MOB-1001",
+  "customerId": "CUST-001",
+  "category": "PAYMENT",
+  "description": "El pago aparece como pendiente después de varios minutos.",
+  "channel": "MOBILE_APP",
+  "priority": "MEDIUM"
+}
+
+### 2. Repetir la misma referencia mientras la orden está activa (409 Conflict)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "externalReference": "MOB-1001",
+  "customerId": "CUST-001",
+  "category": "PAYMENT",
+  "description": "Segundo reporte del mismo pago pendiente.",
+  "channel": "MOBILE_APP"
+}
+
+### 3. Solicitud inválida: falta customerId y la descripción es corta (400 con errores por campo)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "externalReference": "MOB-1002",
+  "category": "PAYMENT",
+  "description": "corto",
+  "channel": "MOBILE_APP"
+}
+
+### 4. Prioridad fuera del catálogo (400 con los valores permitidos)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "externalReference": "MOB-1003",
+  "customerId": "CUST-002",
+  "category": "TECHNICAL",
+  "description": "La aplicación se cierra al abrir el historial.",
+  "channel": "MOBILE_APP",
+  "priority": "URGENT"
+}
+
+### 5. Listar todas las órdenes (más recientes primero)
+GET {{baseUrl}}
+
+### 6. Listar filtrando por estado
+GET {{baseUrl}}?status=OPEN
+
+### 7. Detalle de una orden (incluye allowedTransitions)
+GET {{baseUrl}}/1
+
+### 8. Orden inexistente (404)
+GET {{baseUrl}}/999
+
+### 9. Transición no permitida: OPEN -> RESOLVED (409)
+PATCH {{baseUrl}}/1/status
+Content-Type: application/json
+
+{
+  "status": "RESOLVED"
+}
+
+### 10. Transición permitida: OPEN -> IN_PROGRESS (200)
+PATCH {{baseUrl}}/1/status
+Content-Type: application/json
+
+{
+  "status": "IN_PROGRESS"
+}
+
+### 11. Transición permitida: IN_PROGRESS -> RESOLVED (200). Después, la referencia MOB-1001 puede reutilizarse.
+PATCH {{baseUrl}}/1/status
+Content-Type: application/json
+
+{
+  "status": "RESOLVED"
+}

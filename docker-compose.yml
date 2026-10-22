@@ -1,0 +1,22 @@
+# PostgreSQL opcional para ejecutar el backend con el perfil "postgres".
+#   docker compose up -d
+#   cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
+services:
+  postgres:
+    image: postgres:16.4-alpine
+    environment:
+      POSTGRES_DB: support_orders
+      POSTGRES_USER: support
+      POSTGRES_PASSWORD: support
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U support -d support_orders"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:
