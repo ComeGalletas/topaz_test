@@ -75,15 +75,31 @@ public class SupportOrder {
         this.category = Objects.requireNonNull(category);
         this.description = Objects.requireNonNull(description);
         this.channel = Objects.requireNonNull(channel);
-        this.priority = Objects.requireNonNull(priority);
+        this.priority = priority != null ? priority : Priority.MEDIUM;
         this.createdAt = Objects.requireNonNull(now);
         applyStatus(OrderStatus.OPEN, now);
     }
 
-    /** Crea una orden nueva: siempre nace en OPEN y con la fecha que provee el servidor. */
+    /**
+     * Crea una orden nueva: siempre nace en OPEN y con la fecha que provee el servidor.
+     * Si no se indica prioridad se asume MEDIUM.
+     */
     public static SupportOrder open(String externalReference, String customerId, Category category,
                                     String description, Channel channel, Priority priority, Instant now) {
         return new SupportOrder(externalReference, customerId, category, description, channel, priority, now);
+    }
+
+    /**
+     * Cambia el estado si la política lo permite.
+     *
+     * @throws InvalidStatusTransitionException si la transición no está permitida
+     */
+    public void transitionTo(OrderStatus target, StatusTransitionPolicy policy, Instant now) {
+        Objects.requireNonNull(target);
+        if (!policy.canTransition(status, target)) {
+            throw new InvalidStatusTransitionException(status, target);
+        }
+        applyStatus(target, now);
     }
 
     private void applyStatus(OrderStatus newStatus, Instant now) {
